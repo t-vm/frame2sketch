@@ -2,6 +2,8 @@ import torch
 import torch.nn as nn 
 import torch.nn.functional as F
 import functools
+from config import AnimeToSketchConfig
+
 
 class UnetGenerator(nn.Module):
     """Create a Unet-based generator"""
@@ -147,12 +149,13 @@ def create_model(model):
     """Create a model for anime2sketch
     hardcoding the options for simplicity
     """
+    cfg = AnimeToSketchConfig()
 
     norm_layer = functools.partial(nn.InstanceNorm2d, affine=False, track_running_stats=False)
     net = UnetGenerator(3, 1, 8, 64, norm_layer=norm_layer, use_dropout=False)
 
     if model == 'default':
-        ckpt = torch.load('weights/netG.pth')
+        ckpt = torch.load(cfg.MODEL_DIR)
         for key in list(ckpt.keys()):
             if 'module.' in key:
                 ckpt[key.replace('module.', '')] = ckpt[key]
@@ -160,7 +163,7 @@ def create_model(model):
         net.load_state_dict(ckpt)
 
     elif model == 'improved':
-        ckpt = torch.load('weights/improved.bin', map_location=torch.device('cpu'))
+        ckpt = torch.load(cfg.IMPROVED_MODEL_DIR, map_location=torch.device('cpu'))
         base = net.model.model[1]
 
         # swap deconvolution layers with reszie + conv layers for 2x upsampling
