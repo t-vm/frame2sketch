@@ -25,3 +25,4 @@ class LineartConfig:
         self.BLEND_ALPHA = 0.72       # structure透明度
         self.BLEND_BETA = 0.28        # style透明度 
         self.MASK_BLUR = 3            # 结构mask轻微平滑
+        self.WHITE_THRESHOLD = 240       # 自动增强时的白色阈值，判断是否为白纸区域

@@ -194,31 +194,20 @@ class ImageOps:
 
     def adaptive_darken(
         img: np.ndarray,
-        detect_thr: int = 255,
-        trigger_thr: float = 1,
-        target_thr: int = 200,
-        darken_alpha: float = 1.5,
-        darken_beta: int = -40,
+        gamma: float = 3.1,  # gamma > 1 will darken the image
+        line_threshold:float = 240,
+        blackenough_line_threshold:float = 210
     ) -> np.ndarray:
-        # 统一转灰度做检测
-        if img.ndim == 3:
-            gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
-        else:
-            gray = img
-
-        dark_ratio = np.mean(gray < detect_thr)
-        if dark_ratio >= trigger_thr:
-            return img  # 够暗，不处理
-
-        # 对每个通道做增强，只动线条区域
-        line_mask = gray < target_thr  # (H, W) bool
-
-        enhanced = cv2.convertScaleAbs(img, alpha=darken_alpha, beta=darken_beta)
-
-        result = img.copy()
-        if img.ndim == 3:
-            result[line_mask] = enhanced[line_mask]  # mask 广播到三通道
-        else:
-            result[line_mask] = enhanced[line_mask]
-
+        """Automatically darken the image if the lines are too light.
+        Parameters:
+            img (np.ndarray) -- uint8 numpy array (H, W, C) or (H, W)
+            gamma (float) -- the gamma value for darkening; values greater than 1 will darken the image.
+            line_threshold (float) -- the threshold for determining if the lines are too light. If the average pixel value of the LINES is above this threshold, img will be darkened.
+        """
+        lines_mask = img <line_threshold
+        if np.mean(img[lines_mask]) < blackenough_line_threshold:
+            return img  # lines already dark enough
+        
+        lut = (np.arange(256) / 255.0) ** gamma * 255
+        result = cv2.LUT(img, lut.astype(np.uint8))
         return result
