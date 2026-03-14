@@ -3,7 +3,7 @@ from pathlib import Path
 
 class AnimeToSketchConfig:
     def __init__(self):
-        self.DATAROOT = 'test_samples/'
+        self.DATAROOT = 'input_imgs/'
         self.LOAD_SIZE = 512
         self.MODEL_DIR = 'weights/netG.pth'
         self.IMPROVED_MODEL_DIR = 'weights/improved.bin'
@@ -26,3 +26,9 @@ class LineartConfig:
         self.BLEND_BETA = 0.28        # style透明度 
         self.MASK_BLUR = 3            # 结构mask轻微平滑
         self.WHITE_THRESHOLD = 240       # 自动增强时的白色阈值，判断是否为白纸区域
+
+
+class VideoConfig:
+    def __init__(self):
+        self.INPUT_VIDEOS = 'input_videos/'
+        self.OUTPUT_DIR = 'results_frames/'

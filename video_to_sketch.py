@@ -5,15 +5,16 @@ Example:
 import os
 import torch
 from tqdm.auto import tqdm
-from kornia.enhance import equalize_clahe
 import cv2
 import numpy as np
 from PIL import Image
 
-from config import AnimeToSketchConfig, LineartConfig
+from config import AnimeToSketchConfig, LineartConfig, VideoConfig
 from utils import ImageIO, ImageOps, Utils
 from data import tensor_to_img, save_image
 from model import create_model
+
+video_cfg = VideoConfig()
 
 
 def main(input_dir, output_dir):
@@ -94,8 +95,8 @@ def main(input_dir, output_dir):
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Convert videos to sketches")
-    parser.add_argument('--input_dir', type=str, default='input_video', help='Directory containing input videos')
-    parser.add_argument('--output_dir', type=str, default='results_frames', help='Directory to save output frames')
+    parser.add_argument('--input_dir', type=str, default=video_cfg.INPUT_VIDEOS, help='Directory containing input videos')
+    parser.add_argument('--output_dir', type=str, default=video_cfg.OUTPUT_DIR, help='Directory to save output frames')
     args = parser.parse_args()
 
     main(args.input_dir, args.output_dir)
