@@ -1,4 +1,6 @@
 *.pth
 *.mp4
+*.png
+*.jpg
 .DS_Store
 __pycache__/

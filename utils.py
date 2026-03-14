@@ -6,6 +6,21 @@ import matplotlib as mpl
 import config
 from PIL import Image
 from data import get_transform
+import torch
+from kornia.enhance import equalize_clahe
+
+
+class Utils:
+    @staticmethod
+    def prepare_device(gpu_ids: list):
+        if torch.cuda.is_available():
+            print("use device: cuda")
+            return torch.device('cuda')
+        elif torch.backend.mps.is_available():
+            print("use device: mps")
+            return torch.device("mps")
+        print("use device: cpu")
+        return torch.device('cpu')
 
 
 def _load_pil(image_path: str) -> Image.Image:
@@ -19,6 +34,16 @@ def _load_pil(image_path: str) -> Image.Image:
 包含图像读取、预处理、显示等功能。
 """
 class ImageIO:
+    @staticmethod
+    def preprocess_image(img, clahe_clip):
+        if clahe_clip > 0:
+            img = (img + 1) / 2
+            img = equalize_clahe(img, clip_limit=clahe_clip)
+            img = (img - 0.5) / 0.5
+        return img
+
+
+
     @staticmethod
     def load_pil(image_path: str) -> Image.Image:
         img = Image.open(image_path).convert('RGB')

@@ -6,31 +6,15 @@ Example:
 import os
 import torch
 from tqdm.auto import tqdm
-from kornia.enhance import equalize_clahe
 
 from config import AnimeToSketchConfig, LineartConfig
-from utils import ImageIO, ImageOps
+from utils import ImageIO, ImageOps,Utils
 
 from data import get_image_list, read_img_path, tensor_to_img, save_image
 from model import create_model
 
-
 import numpy as np
 import cv2
-
-
-
-def prepare_device(gpu_ids: list):
-    # gpu_list = ','.join(str(x) for x in gpu_ids)
-    # os.environ['CUDA_VISIBLE_DEVICES'] = gpu_list
-    if torch.cuda.is_available():
-        print("use device: cuda")
-        return torch.device('cuda')
-    elif torch.backend.mps.is_available():
-        print("use device: mps")
-        return torch.device("mps")
-    print("use device: cpu")
-    return torch.device('cpu')
 
 
 def get_test_list(dataroot):
@@ -41,19 +25,11 @@ def get_test_list(dataroot):
     raise ValueError(f'{dataroot} is not a valid directory or image file.')
 
 
-def preprocess_image(img, clahe_clip):
-    if clahe_clip > 0:
-        img = (img + 1) / 2
-        img = equalize_clahe(img, clip_limit=clahe_clip)
-        img = (img - 0.5) / 0.5
-    return img
-
-
 def main():
     cfg = AnimeToSketchConfig()
     lineart_cfg = LineartConfig()
 
-    device = prepare_device(cfg.GPU_IDS)
+    device = Utils.prepare_device(cfg.GPU_IDS)
     model = create_model(cfg.MODEL).to(device)
     model.eval()
 
@@ -69,7 +45,7 @@ def main():
 
         # 1.5. preprocess for anime2sketch
         img_np, aus_resize = ImageIO.to_tensor(pil_img, cfg.LOAD_SIZE)
-        img_np = preprocess_image(img_np, cfg.CLAHE_CLIP)
+        img_np = ImageIO.preprocess_image(img_np, cfg.CLAHE_CLIP)
         # 2. inference
         with torch.no_grad():
             aus_tensor = model(img_np.to(device))
