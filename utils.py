@@ -194,9 +194,10 @@ class ImageOps:
 
     def adaptive_darken(
         img: np.ndarray,
-        gamma: float = 3.1,  # gamma > 1 will darken the image
+        gamma: float = 3.5,  # gamma > 1 will darken the image
         line_threshold:float = 240,
-        blackenough_line_threshold:float = 210
+        blackenough_line_threshold:float = 210,
+        gamma_light:float = 1.5
     ) -> np.ndarray:
         """Automatically darken the image if the lines are too light.
         Parameters:
@@ -205,9 +206,29 @@ class ImageOps:
             line_threshold (float) -- the threshold for determining if the lines are too light. If the average pixel value of the LINES is above this threshold, img will be darkened.
         """
         lines_mask = img <line_threshold
-        if np.mean(img[lines_mask]) < blackenough_line_threshold:
+        avg = np.mean(img[lines_mask])
+        if avg < blackenough_line_threshold: 
             return img  # lines already dark enough
+        
+        # 动态 gamma：平均灰度从 blackenough(210) 到 line_threshold(240) 线性映射到 gamma 1.0 ~ 3.1
+        t = (avg - blackenough_line_threshold) / (line_threshold - blackenough_line_threshold)
+        gamma = 1.0 + t * (gamma - 1.0)  # avg越高，gamma越大
+        # print(gamma) # debug
         
         lut = (np.arange(256) / 255.0) ** gamma * 255
         result = cv2.LUT(img, lut.astype(np.uint8))
+        
+        # lut = np.arange(256, dtype=np.float32)
+
+        # for i in range(int(line_threshold)):
+        #     # t=0 时像素最深（i=0），gamma=1.0 不动
+        #     # t=1 时像素最浅（i=light_thr），gamma=gamma_light 最大加深
+        #     t = i / line_threshold
+        #     g = 1.0 + t * (gamma_light - 1.0)
+        #     lut[i] = (i / 255.0) ** g * 255
+
+        # lut[int(line_threshold):] = lut[int(line_threshold):]  # 白背景不动
+        # lut = np.clip(lut, 0, 255).astype(np.uint8)
+        # result = cv2.LUT(img, lut)
+        
         return result

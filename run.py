@@ -15,6 +15,11 @@ from data import get_image_list, read_img_path, tensor_to_img, save_image
 from model import create_model
 
 
+import numpy as np
+import cv2
+
+
+
 def prepare_device(gpu_ids: list):
     # gpu_list = ','.join(str(x) for x in gpu_ids)
     # os.environ['CUDA_VISIBLE_DEVICES'] = gpu_list
@@ -69,6 +74,12 @@ def main():
         with torch.no_grad():
             aus_tensor = model(img_np.to(device))
         img_style_np = tensor_to_img(aus_tensor) # (H, W, C) uint8
+
+        # debug
+        ksize=(5,5)
+        sigma=1.5
+        img_style_np = cv2.GaussianBlur(img_style_np.astype(np.float32), ksize, sigma).clip(0,255).astype(img_style_np.dtype)
+        
         
         # 3. gen lineart layer 
         grey_img = ImageIO.to_gray(pil_img)
@@ -81,7 +92,7 @@ def main():
         # 4.sketch fusion 
         blended = ImageOps.blend_lines_np(img_structure_np, img_style_np, alpha=lineart_cfg.BLEND_ALPHA, beta=lineart_cfg.BLEND_BETA, mask_blur=lineart_cfg.MASK_BLUR)  # blend_alpha means the weight for structure line, blend_beta means the weight for style line
         fin_np = ImageOps.adaptive_darken(blended)  # 自动判断是否后处理增强，针对线条较淡的情况        
-
+        # fin_np = blended  # debug
         save_image(fin_np, aus_path, aus_resize)
 
 
